@@ -9,12 +9,13 @@ on:
 
   workflow_dispatch:
 
-# Relies on the following secrets being configured in GitHub
-# - secrets.AZURE_CLIENT_ID
-# - secrets.AZURE_TENANT_ID
-# - secrets.AZURE_SUBSCRIPTION_ID
-# - secrets.RESOURCE_GROUP_NAME
-# - secrets.DATA_FACTORY_NAME
+# Relies on the following variables being configured in GitHub
+# - vars.AZURE_CLIENT_ID
+# - vars.AZURE_TENANT_ID
+# - vars.AZURE_SUBSCRIPTION_ID
+# - vars.RESOURCE_GROUP_NAME
+# - vars.DATA_FACTORY_NAME
+# - secrets.STORAGE_ACCOUNT_TOKEN
 
 permissions:
       id-token: write
@@ -22,6 +23,9 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}
+
+env:
+  containerURI: 'https://saesripoc.blob.core.windows.net/private'
 
 jobs:
   build:
@@ -35,11 +39,10 @@ jobs:
 
       - name: Export ARM Template
         id: export
-        #uses: azure/data-factory-export-action@v1.1.0
-        uses: fredgohsman/data-factory-export-action@main
+        uses: azure/data-factory-export-action@v1.2.0
         with:
           path: ./AzureDataFactory/src
-          id: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ secrets.DATA_FACTORY_NAME }}
+          id: /subscriptions/${{ vars.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ vars.DATA_FACTORY_NAME }}
         
       # Uploading our artifact from adf_publish branch
       - uses: actions/upload-artifact@v3
@@ -65,18 +68,21 @@ jobs:
       - name: 'Az CLI login'
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true 
           
       # Deploying to UAT environment
       - name: Deploy resources to Dev
-        #uses: Azure/data-factory-deploy-action@v1.2.0
+        #uses: azure/data-factory-deploy-action@v1.2.0
         uses: fredgohsman/data-factory-deploy-action@main
         with:
-          resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
-          dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
+          resourceGroupName: ${{ vars.RESOURCE_GROUP_NAME }}
+          dataFactoryName: ${{ vars.DATA_FACTORY_NAME }}
+          armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
+          additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
           
   QA_Deploy:
     name: Deploy to QA
@@ -96,9 +102,9 @@ jobs:
       - name: 'Az CLI login'
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true 
           
       # Deploying to QA environment
@@ -106,8 +112,11 @@ jobs:
         #uses: Azure/data-factory-deploy-action@v1.2.0
         uses: fredgohsman/data-factory-deploy-action@main
         with:
-          resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
-          dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
+          resourceGroupName: ${{ vars.RESOURCE_GROUP_NAME }}
+          dataFactoryName: ${{ vars.DATA_FACTORY_NAME }}
+          armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
+          additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
           
   PROD_Deploy:
     name: Deploy to Production
@@ -127,9 +136,9 @@ jobs:
       - name: 'Az CLI login'
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true 
           
       # Deploying to Production environment
@@ -137,5 +146,8 @@ jobs:
         #uses: Azure/data-factory-deploy-action@v1.2.0
         uses: fredgohsman/data-factory-deploy-action@main
         with:
-          resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
-          dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
+          resourceGroupName: ${{ vars.RESOURCE_GROUP_NAME }}
+          dataFactoryName: ${{ vars.DATA_FACTORY_NAME }}
+          armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
+          additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
