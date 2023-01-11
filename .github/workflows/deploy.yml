@@ -79,9 +79,9 @@ jobs:
         with:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
           dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
-          armTemplateFile: linkedTemplates/ArmTemplate_master.json
           armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
           additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
           
   QA_Deploy:
     name: Deploy to QA
@@ -113,9 +113,9 @@ jobs:
         with:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
           dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
-          armTemplateFile: linkedTemplates/ArmTemplate_master.json
           armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
           additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
           
   PROD_Deploy:
     name: Deploy to Production
@@ -147,6 +147,6 @@ jobs:
         with:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
           dataFactoryName: ${{ secrets.DATA_FACTORY_NAME }}
-          armTemplateFile: linkedTemplates/ArmTemplate_master.json
           armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
           additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
+          useLinkedTemplates: true
