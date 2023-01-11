@@ -81,7 +81,7 @@ jobs:
           resourceGroupName: ${{ vars.RESOURCE_GROUP_NAME }}
           dataFactoryName: ${{ vars.DATA_FACTORY_NAME }}
           armTemplateParametersFile: linkedTemplates/ArmTemplateParameters_master.json
-          additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ vars.STORAGE_ACCOUNT_TOKEN }}'
+          additionalParameters: 'containerUri=${{ env.containerURI }} containerSasToken=${{ secrets.STORAGE_ACCOUNT_TOKEN }}'
           useLinkedTemplates: true
           
   QA_Deploy:
